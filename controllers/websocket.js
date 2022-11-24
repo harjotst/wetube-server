@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
 
+const { getYoutubeVideoDuration } = require('../controllers/youtubedata')
+
 const User = require("../models/user");
 
 const findUserById = async (socketId) => {
@@ -77,6 +79,9 @@ const socketController = (io) => {
       // update video time
       user.room.videoTime = time;
 
+      // update last updated
+      user.room.lastUpdated = Date.now();
+
       // save room
       await user.room.save();
 
@@ -100,6 +105,9 @@ const socketController = (io) => {
 
       // update video time
       user.room.videoTime = time;
+
+      // update last updated
+      user.room.lastUpdated = Date.now();
 
       // save room
       await user.room.save();
@@ -136,14 +144,30 @@ const socketController = (io) => {
       // if user doesn't exist
       if (!user) return;
 
+
+      // get new video duration in seconds
+      let duration;
+
+      try {
+        duration = await getYoutubeVideoDuration(videoUrl.split("v=")[1]);
+      } catch (error) {
+        return;
+      }
+
       // set video url
       user.room.videoUrl = videoUrl;
 
       // set video time to =
       user.room.videoTime = 0;
 
+      // set video duration
+      user.room.duration = duration;
+
       // set video to paused
       user.room.paused = true;
+
+      // update last updated
+      user.room.lastUpdated = Date.now();
 
       // save room
       await user.room.save();

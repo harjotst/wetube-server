@@ -1,5 +1,3 @@
-const axios = require("axios");
-
 const { YOUTUBE_API_KEY } = require("../setup/env");
 
 const createYoutubeDataUrl = (youtubeId) => {
@@ -7,22 +5,38 @@ const createYoutubeDataUrl = (youtubeId) => {
 };
 
 const formatDuration = (unformattedDuration) => {
-  let [minutes, seconds] = unformattedDuration.split("T")[1].split("M");
+  const secondsMinutesHours = unformattedDuration
+    .substring(2)
+    .replace(/H|M|S/gi, " ")
+    .trim()
+    .split(" ");
 
-  seconds = seconds.substring(0, seconds.length - 1);
+  let videoDurationInSeconds = 0;
 
-  return 60 * parseInt(minutes) + parseInt(seconds);
+  if (secondsMinutesHours.length === 2) {
+    videoDurationInSeconds =
+      parseInt(secondsMinutesHours[0]) * 60 + parseInt(secondsMinutesHours[1]);
+  } else {
+    videoDurationInSeconds =
+      parseInt(secondsMinutesHours[0]) * 3600 +
+      parseInt(secondsMinutesHours[1]) * 60 +
+      parseInt(secondsMinutesHours[2]);
+  }
+
+  return videoDurationInSeconds;
 };
 
 const getYoutubeVideoDuration = async (youtubeId) => {
-  const result = await axios.get(createYoutubeDataUrl(youtubeId));
+  const response = await fetch(createYoutubeDataUrl(youtubeId));
 
-  if (result.data.items.length === 0) {
+  const data = await response.json();
+
+  if (data.items.length === 0) {
     throw Error(`YouTube video with id '${youtubeId}' wasn't found`);
   }
 
-  const unformattedDuration = result.data.items[0].contentDetails.duration;
-
+  const unformattedDuration = data.items[0].contentDetails.duration;
+  
   return formatDuration(unformattedDuration);
 };
 

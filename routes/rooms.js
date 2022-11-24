@@ -21,6 +21,7 @@ router.post("/create-room", async (req, res) => {
       .status(400)
       .send({ message: "Username Or Video URL Not Provided." });
 
+  // get video duration in seconds
   let duration;
 
   try {
@@ -116,7 +117,7 @@ router.post("/join-room", async (req, res) => {
   // update room
   await room.save();
 
-  // return username and room id back to client
+  // return username room id, and room info back to client
   const response = {
     username: user.username,
     room: room.roomId,
